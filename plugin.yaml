@@ -1,0 +1,159 @@
+name: model-drift-watch
+version: 0.1.0
+manifest_version: 2
+requires_hermes: ">=0.21.5"
+description: >-
+  Find out when the model you use gets quietly worse. Runs a fixed, exactly graded
+  question set (reasoning, instruction following, Japanese, and code if you turn it
+  on) on a schedule, compares each run with the same model's own baseline using an
+  exact statistical test, and messages you only when a drop passes that test. Shows
+  the token and dollar cost before it spends anything and stops at your cap.
+author: TakeshiTGAL
+license: MIT
+homepage: https://github.com/TakeshiTGAL/hermes-plugin-model-drift
+tags: [models, monitoring, evals, regression, cron]
+
+provides_tools:
+  - model_drift
+
+config_schema:
+  max_tokens_per_check:
+    type: int
+    default: 120000
+    label: Token cap per check
+    description: >-
+      Hard limit on input plus output tokens for one check (including a confirmation
+      run). A check whose estimate is over it does not start; a request is only sent
+      while its longest possible answer still fits under it.
+  max_usd_per_check:
+    type: float
+    default: 0.5
+    label: Dollar cap per check
+    description: >-
+      The same limit in US dollars. Needs a known price (Hermes pricing data or the
+      two price fields below); without one only the token cap applies.
+  price_input_per_mtok:
+    type: float
+    default: 0
+    label: Input price per million tokens (USD)
+    description: Leave 0 to use Hermes's own pricing data for your model.
+  price_output_per_mtok:
+    type: float
+    default: 0
+    label: Output price per million tokens (USD)
+    description: Leave 0 to use Hermes's own pricing data for your model.
+  baseline_runs:
+    type: int
+    default: 5
+    label: Baseline runs
+    description: >-
+      How many successful runs must exist before testing starts. 3 starts sooner but
+      detects less and raises more false alarms.
+  baseline_max_runs:
+    type: int
+    default: 15
+    label: Largest baseline
+    description: >-
+      After the first baseline_runs, runs of checks that ended clean keep joining the
+      baseline up to this many, so one lucky early run cannot set the bar for good.
+      Then the baseline is frozen.
+  baseline_min_gap_hours:
+    type: float
+    default: 12
+    label: Hours between baseline runs
+    description: >-
+      A run only joins the baseline if it is at least this long after the previous
+      baseline run, so a burst of manual runs cannot make a too-narrow baseline. 0 = off.
+  samples_per_item:
+    type: int
+    default: 1
+    label: Samples per question
+    description: Answers collected per question per run. 2 doubles cost and sensitivity improves.
+  alpha:
+    type: float
+    default: 0.01
+    label: Significance level
+    description: >-
+      Bound on the chance that a check of an unchanged model raises an accuracy alert,
+      averaged over baselines (see README Table 2); the answer-length alert has its own
+      1% bound. Shared between the whole-set test (60%) and the per-category tests (40%, Holm).
+  min_drop_points:
+    type: float
+    default: 5
+    label: Smallest drop worth reporting (accuracy points)
+  confirm:
+    type: bool
+    default: true
+    label: Confirm before alerting
+    description: >-
+      When a run looks worse (5% screen), run the set once more right away and alert
+      only if both runs together pass the test and the second run shows the drop on
+      its own. Costs a second run on those days only (a few percent of normal days).
+  max_error_rate:
+    type: float
+    default: 0.2
+    label: Highest share of failed calls that still counts as a measurement
+    description: >-
+      Above this share of rate limits, network errors, empty or rerouted answers,
+      the run is reported as a failed measurement, never as drift.
+  concurrency:
+    type: int
+    default: 4
+    label: Parallel requests
+  request_timeout:
+    type: int
+    default: 90
+    label: Seconds per request
+  check_deadline:
+    type: int
+    default: 300
+    label: Seconds per tool call
+    description: >-
+      Shared by every watched model in one call. Capped automatically at Hermes's
+      tool-call limit (timeouts.tools.sequential_call, 420 s by default) minus 30 s.
+  max_tokens_scale:
+    type: float
+    default: 1.0
+    label: Answer length limit multiplier
+    description: >-
+      Multiplies every question's max_tokens. Raise it (e.g. 4) for reasoning models
+      that run out of room while thinking. Changing it makes the questions collect
+      their baseline again (5 runs), then testing resumes.
+  temperature:
+    type: float
+    default: 0
+    label: Temperature
+    description: Sent with every question. Set send_temperature to false for models that reject it.
+  send_temperature:
+    type: bool
+    default: true
+    label: Send temperature
+  code_execution:
+    type: bool
+    default: false
+    label: Grade code questions by running them
+    description: >-
+      Off by default. When on, Python written by your model runs on this machine, also in
+      scheduled runs where nobody approves it. Hermes refuses its own execute_code in cron
+      unless approvals.cron_mode is approve; turn this on only if you accept the same.
+      Off skips the 10 code questions.
+  notify:
+    type: str
+    default: problems
+    choices: [problems, always]
+    label: When to message you
+    description: >-
+      problems = drift, a changed served model, failed measurements and the
+      baseline becoming ready. always = every run.
+  categories:
+    type: list
+    default: []
+    label: Categories to run
+    description: Empty = all (reasoning, code, instruction, japanese, plus your own).
+  extra_targets:
+    type: list
+    default: []
+    label: Extra models to watch
+    description: >-
+      Besides your main model, e.g. ["openrouter:deepseek/deepseek-chat"]. Each needs
+      the ctx.llm override grant shown by `hermes model-drift-watch targets`.

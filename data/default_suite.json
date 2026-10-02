@@ -1,0 +1,700 @@
+{
+ "name": "model-drift-watch default suite",
+ "version": 1,
+ "license": "MIT (written for this project; no third-party benchmark items)",
+ "items": [
+  {
+   "id": "r01-arith",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "Compute 4,837 × 29 − 6,251.",
+   "grader": {
+    "type": "number",
+    "answer": 134022
+   },
+   "reference": "ANSWER: 134022",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r02-dates",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "How many days are there from 2024-02-15 to 2024-03-15? Count the end date but not the start date.",
+   "grader": {
+    "type": "number",
+    "answer": 29
+   },
+   "reference": "ANSWER: 29",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r03-multiply",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "Compute 987,654 × 3,219 exactly, without a calculator.",
+   "grader": {
+    "type": "number",
+    "answer": 3179258226
+   },
+   "reference": "ANSWER: 3179258226",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r04-letters",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "How many times does the letter \"r\" appear in the phrase \"strawberry raspberry recurring\"?",
+   "grader": {
+    "type": "number",
+    "answer": 9
+   },
+   "reference": "ANSWER: 9",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r05-weekday",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "Today is a Wednesday. What day of the week will it be 100 days from today? Give the English name of the day.",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "Friday"
+    ]
+   },
+   "reference": "ANSWER: Friday",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r06-order",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "Alice is older than Bob. Carol is younger than Bob. Dave is older than Alice. Erin is younger than Carol. Who is the second youngest?",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "Carol"
+    ]
+   },
+   "reference": "ANSWER: Carol",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r07-primes",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "What is the sum of all prime numbers below 100?",
+   "grader": {
+    "type": "number",
+    "answer": 1060
+   },
+   "reference": "ANSWER: 1060",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r08-last-digit",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "What is the last digit of 7^222?",
+   "grader": {
+    "type": "number",
+    "answer": 9
+   },
+   "reference": "ANSWER: 9",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r09-divisible",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "How many positive integers below 1000 are divisible by 3 or by 5, but not by 15?",
+   "grader": {
+    "type": "number",
+    "answer": 400
+   },
+   "reference": "ANSWER: 400",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r10-zeros",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "How many trailing zeros does 125! (125 factorial) have?",
+   "grader": {
+    "type": "number",
+    "answer": 31
+   },
+   "reference": "ANSWER: 31",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r11-reverse",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "Reverse the string drift-monitor-2026 character by character.",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "6202-rotinom-tfird"
+    ],
+    "case_sensitive": true
+   },
+   "reference": "ANSWER: 6202-rotinom-tfird",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r12-stairs",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "In how many different ways can you climb a staircase of 12 steps if each move is either 1 or 2 steps?",
+   "grader": {
+    "type": "number",
+    "answer": 233
+   },
+   "reference": "ANSWER: 233",
+   "max_tokens": 1024
+  },
+  {
+   "id": "r13-vowels",
+   "category": "reasoning",
+   "lang": "en",
+   "extract": "answer_line",
+   "prompt": "How many vowels (a, e, i, o, u) are there in \"Hermes plugin catalog admission rules\"? Count every occurrence, upper or lower case.",
+   "grader": {
+    "type": "number",
+    "answer": 13
+   },
+   "reference": "ANSWER: 13",
+   "max_tokens": 1024
+  },
+  {
+   "id": "c01-palindrome",
+   "category": "code",
+   "lang": "en",
+   "extract": "code",
+   "prompt": "Write a Python function is_palindrome(s: str) -> bool that returns True when s reads the same forwards and backwards, considering only letters and digits and ignoring case.",
+   "grader": {
+    "type": "python",
+    "entry": "is_palindrome",
+    "tests": [
+     "assert is_palindrome('A man, a plan, a canal: Panama') is True",
+     "assert is_palindrome('race a car') is False",
+     "assert is_palindrome('') is True",
+     "assert is_palindrome('0P') is False",
+     "assert is_palindrome(\"No 'x' in Nixon\") is True"
+    ]
+   },
+   "reference": "```python\ndef is_palindrome(s):\n    t = [c.lower() for c in s if c.isalnum()]\n    return t == t[::-1]\n```",
+   "max_tokens": 1536
+  },
+  {
+   "id": "c02-fizzbuzz",
+   "category": "code",
+   "lang": "en",
+   "extract": "code",
+   "prompt": "Write a Python function fizzbuzz(n: int) -> list[str] that returns the strings for 1..n: \"Fizz\" for multiples of 3, \"Buzz\" for multiples of 5, \"FizzBuzz\" for multiples of both, otherwise the number as a string.",
+   "grader": {
+    "type": "python",
+    "entry": "fizzbuzz",
+    "tests": [
+     "assert fizzbuzz(5) == ['1', '2', 'Fizz', '4', 'Buzz']",
+     "assert fizzbuzz(15)[-1] == 'FizzBuzz'",
+     "assert fizzbuzz(0) == []",
+     "assert len(fizzbuzz(100)) == 100 and fizzbuzz(100).count('FizzBuzz') == 6"
+    ]
+   },
+   "reference": "```python\ndef fizzbuzz(n):\n    out = []\n    for i in range(1, n + 1):\n        s = ('Fizz' if i % 3 == 0 else '') + ('Buzz' if i % 5 == 0 else '')\n        out.append(s or str(i))\n    return out\n```",
+   "max_tokens": 1536
+  },
+  {
+   "id": "c03-intervals",
+   "category": "code",
+   "lang": "en",
+   "extract": "code",
+   "prompt": "Write a Python function merge_intervals(intervals: list[list[int]]) -> list[list[int]] that merges overlapping closed intervals and returns them sorted by start. Intervals that touch, like [1, 2] and [2, 3], also merge. The input may be unsorted.",
+   "grader": {
+    "type": "python",
+    "entry": "merge_intervals",
+    "tests": [
+     "assert merge_intervals([[1, 3], [2, 6], [8, 10], [15, 18]]) == [[1, 6], [8, 10], [15, 18]]",
+     "assert merge_intervals([[1, 2], [2, 3]]) == [[1, 3]]",
+     "assert merge_intervals([[5, 7], [1, 2]]) == [[1, 2], [5, 7]]",
+     "assert merge_intervals([]) == []",
+     "assert merge_intervals([[1, 10], [2, 3], [4, 5]]) == [[1, 10]]"
+    ]
+   },
+   "reference": "```python\ndef merge_intervals(intervals):\n    out = []\n    for a, b in sorted(intervals):\n        if out and a <= out[-1][1]:\n            out[-1][1] = max(out[-1][1], b)\n        else:\n            out.append([a, b])\n    return out\n```",
+   "max_tokens": 1536
+  },
+  {
+   "id": "c04-roman",
+   "category": "code",
+   "lang": "en",
+   "extract": "code",
+   "prompt": "Write a Python function roman_to_int(s: str) -> int that converts a Roman numeral (I, V, X, L, C, D, M, with subtractive forms like IV and CM) to an integer.",
+   "grader": {
+    "type": "python",
+    "entry": "roman_to_int",
+    "tests": [
+     "assert roman_to_int('MCMXCIV') == 1994",
+     "assert roman_to_int('LVIII') == 58",
+     "assert roman_to_int('IX') == 9",
+     "assert roman_to_int('MMXXVI') == 2026",
+     "assert roman_to_int('CDXLIV') == 444"
+    ]
+   },
+   "reference": "```python\ndef roman_to_int(s):\n    v = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000}\n    total = 0\n    for i, c in enumerate(s):\n        if i + 1 < len(s) and v[c] < v[s[i + 1]]:\n            total -= v[c]\n        else:\n            total += v[c]\n    return total\n```",
+   "max_tokens": 1536
+  },
+  {
+   "id": "c05-flatten",
+   "category": "code",
+   "lang": "en",
+   "extract": "code",
+   "prompt": "Write a Python function flatten(nested: list) -> list that flattens arbitrarily nested lists into one flat list, keeping the order of the elements.",
+   "grader": {
+    "type": "python",
+    "entry": "flatten",
+    "tests": [
+     "assert flatten([1, [2, [3, [4]], 5]]) == [1, 2, 3, 4, 5]",
+     "assert flatten([]) == []",
+     "assert flatten([[[]]]) == []",
+     "assert flatten(['a', ['b', ['c']]]) == ['a', 'b', 'c']"
+    ]
+   },
+   "reference": "```python\ndef flatten(nested):\n    out = []\n    for x in nested:\n        if isinstance(x, list):\n            out.extend(flatten(x))\n        else:\n            out.append(x)\n    return out\n```",
+   "max_tokens": 1536
+  },
+  {
+   "id": "c06-rle",
+   "category": "code",
+   "lang": "en",
+   "extract": "code",
+   "prompt": "Write a Python function rle_encode(s: str) -> str that run-length encodes a string as each character followed by the length of its run, for example \"aaabcc\" becomes \"a3b1c2\".",
+   "grader": {
+    "type": "python",
+    "entry": "rle_encode",
+    "tests": [
+     "assert rle_encode('aaabccdddd') == 'a3b1c2d4'",
+     "assert rle_encode('') == ''",
+     "assert rle_encode('z') == 'z1'",
+     "assert rle_encode('aaaaaaaaaaaab') == 'a12b1'",
+     "assert rle_encode('abab') == 'a1b1a1b1'"
+    ]
+   },
+   "reference": "```python\ndef rle_encode(s):\n    out = []\n    i = 0\n    while i < len(s):\n        j = i\n        while j < len(s) and s[j] == s[i]:\n            j += 1\n        out.append(s[i] + str(j - i))\n        i = j\n    return ''.join(out)\n```",
+   "max_tokens": 1536
+  },
+  {
+   "id": "c07-second",
+   "category": "code",
+   "lang": "en",
+   "extract": "code",
+   "prompt": "Write a Python function second_largest(nums: list[int]) -> int | None that returns the second largest distinct value in nums, or None when there are fewer than two distinct values.",
+   "grader": {
+    "type": "python",
+    "entry": "second_largest",
+    "tests": [
+     "assert second_largest([3, 1, 4, 4, 5]) == 4",
+     "assert second_largest([7, 7]) is None",
+     "assert second_largest([]) is None",
+     "assert second_largest([-1, -2]) == -2"
+    ]
+   },
+   "reference": "```python\ndef second_largest(nums):\n    d = sorted(set(nums))\n    return d[-2] if len(d) >= 2 else None\n```",
+   "max_tokens": 1536
+  },
+  {
+   "id": "c08-brackets",
+   "category": "code",
+   "lang": "en",
+   "extract": "code",
+   "prompt": "Write a Python function is_balanced(s: str) -> bool that returns True when the brackets (), [] and {} in s are balanced and correctly nested. Ignore every other character.",
+   "grader": {
+    "type": "python",
+    "entry": "is_balanced",
+    "tests": [
+     "assert is_balanced('([]{})') is True",
+     "assert is_balanced('([)]') is False",
+     "assert is_balanced('((') is False",
+     "assert is_balanced('a(b)c') is True",
+     "assert is_balanced('') is True",
+     "assert is_balanced('}{') is False"
+    ]
+   },
+   "reference": "```python\ndef is_balanced(s):\n    pairs = {')': '(', ']': '[', '}': '{'}\n    stack = []\n    for c in s:\n        if c in '([{':\n            stack.append(c)\n        elif c in pairs:\n            if not stack or stack.pop() != pairs[c]:\n                return False\n    return not stack\n```",
+   "max_tokens": 1536
+  },
+  {
+   "id": "c09-rotate",
+   "category": "code",
+   "lang": "en",
+   "extract": "code",
+   "prompt": "Write a Python function rotate_clockwise(matrix: list[list[int]]) -> list[list[int]] that returns a new matrix rotated 90 degrees clockwise. The matrix may be rectangular or empty.",
+   "grader": {
+    "type": "python",
+    "entry": "rotate_clockwise",
+    "tests": [
+     "assert rotate_clockwise([[1, 2], [3, 4]]) == [[3, 1], [4, 2]]",
+     "assert rotate_clockwise([[1, 2, 3]]) == [[1], [2], [3]]",
+     "assert rotate_clockwise([]) == []",
+     "assert rotate_clockwise([[1], [2], [3]]) == [[3, 2, 1]]"
+    ]
+   },
+   "reference": "```python\ndef rotate_clockwise(matrix):\n    return [list(row) for row in zip(*matrix[::-1])]\n```",
+   "max_tokens": 1536
+  },
+  {
+   "id": "c10-nth-prime",
+   "category": "code",
+   "lang": "en",
+   "extract": "code",
+   "prompt": "Write a Python function nth_prime(n: int) -> int that returns the n-th prime number, counting from nth_prime(1) == 2.",
+   "grader": {
+    "type": "python",
+    "entry": "nth_prime",
+    "tests": [
+     "assert nth_prime(1) == 2",
+     "assert nth_prime(6) == 13",
+     "assert nth_prime(100) == 541",
+     "assert nth_prime(1000) == 7919"
+    ]
+   },
+   "reference": "```python\ndef nth_prime(n):\n    count, k = 0, 1\n    while count < n:\n        k += 1\n        if all(k % d for d in range(2, int(k ** 0.5) + 1)):\n            count += 1\n    return k\n```",
+   "max_tokens": 1536
+  },
+  {
+   "id": "i01-only-ok",
+   "category": "instruction",
+   "lang": "en",
+   "extract": "full",
+   "prompt": "Reply with exactly the word OK in capital letters and nothing else.",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "OK"
+    ],
+    "strict": true
+   },
+   "reference": "OK",
+   "max_tokens": 512
+  },
+  {
+   "id": "i02-json-array",
+   "category": "instruction",
+   "lang": "en",
+   "extract": "full",
+   "prompt": "List the three primary colors of light as a JSON array of lowercase English strings. Output only the JSON array, with no code fences and no other text.",
+   "grader": {
+    "type": "json",
+    "equals": [
+     "red",
+     "green",
+     "blue"
+    ],
+    "unordered": true
+   },
+   "reference": "[\"red\", \"green\", \"blue\"]",
+   "max_tokens": 512
+  },
+  {
+   "id": "i03-commas",
+   "category": "instruction",
+   "lang": "en",
+   "extract": "full",
+   "prompt": "Write the integers from 1 to 7 separated by commas with no spaces. Output nothing else.",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "1,2,3,4,5,6,7"
+    ],
+    "strict": true
+   },
+   "reference": "1,2,3,4,5,6,7",
+   "max_tokens": 512
+  },
+  {
+   "id": "i04-three-words",
+   "category": "instruction",
+   "lang": "en",
+   "extract": "full",
+   "prompt": "Answer in exactly three words: what is the capital city of France?",
+   "grader": {
+    "type": "regex",
+    "patterns": [
+     "^\\W*\\w+\\W+\\w+\\W+\\w+\\W*$",
+     "(?i)\\bparis\\b"
+    ]
+   },
+   "reference": "It is Paris.",
+   "max_tokens": 512
+  },
+  {
+   "id": "i05-reverse-words",
+   "category": "instruction",
+   "lang": "en",
+   "extract": "full",
+   "prompt": "Reverse the order of the words in this sentence and output only the result, in lowercase: alpha beta gamma delta epsilon",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "epsilon delta gamma beta alpha"
+    ],
+    "strict": true
+   },
+   "reference": "epsilon delta gamma beta alpha",
+   "max_tokens": 512
+  },
+  {
+   "id": "i06-hyphens",
+   "category": "instruction",
+   "lang": "en",
+   "extract": "full",
+   "prompt": "Write the word banana in capital letters with a hyphen between every two letters. Output nothing else.",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "B-A-N-A-N-A"
+    ],
+    "strict": true
+   },
+   "reference": "B-A-N-A-N-A",
+   "max_tokens": 512
+  },
+  {
+   "id": "i07-json-object",
+   "category": "instruction",
+   "lang": "en",
+   "extract": "full",
+   "prompt": "Output a JSON object with exactly two keys: \"name\" with the string value \"Hermes\" and \"version\" with the integer 3. Output only the JSON, with no code fences and no other text.",
+   "grader": {
+    "type": "json",
+    "equals": {
+     "name": "Hermes",
+     "version": 3
+    }
+   },
+   "reference": "{\"name\": \"Hermes\", \"version\": 3}",
+   "max_tokens": 512
+  },
+  {
+   "id": "i08-sorted-letters",
+   "category": "instruction",
+   "lang": "en",
+   "extract": "full",
+   "prompt": "Write the letters of the word consequential in alphabetical order as one lowercase word, keeping repeated letters. Output nothing else.",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "aceeilnnoqstu"
+    ],
+    "strict": true
+   },
+   "reference": "aceeilnnoqstu",
+   "max_tokens": 512
+  },
+  {
+   "id": "i09-sort",
+   "category": "instruction",
+   "lang": "en",
+   "extract": "full",
+   "prompt": "Sort these words alphabetically and output them on one line separated by single spaces, nothing else: pear apple fig banana cherry",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "apple banana cherry fig pear"
+    ],
+    "strict": true
+   },
+   "reference": "apple banana cherry fig pear",
+   "max_tokens": 512
+  },
+  {
+   "id": "i10-date-line",
+   "category": "instruction",
+   "lang": "en",
+   "extract": "full",
+   "prompt": "Output exactly one line that starts with DATE: followed by a space and the date 1 March 2025 written as DD/MM/YYYY.",
+   "grader": {
+    "type": "regex",
+    "patterns": [
+     "^DATE: 01/03/2025$"
+    ]
+   },
+   "reference": "DATE: 01/03/2025",
+   "max_tokens": 512
+  },
+  {
+   "id": "j01-yomi",
+   "category": "japanese",
+   "lang": "ja",
+   "extract": "answer_line",
+   "prompt": "「東京」の読みをひらがなで答えてください。",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "とうきょう"
+    ]
+   },
+   "reference": "ANSWER: とうきょう",
+   "max_tokens": 1024
+  },
+  {
+   "id": "j02-kansuji",
+   "category": "japanese",
+   "lang": "ja",
+   "extract": "answer_line",
+   "prompt": "三百二十五と四百七十六を足すといくつですか。算用数字で答えてください。",
+   "grader": {
+    "type": "number",
+    "answer": 801
+   },
+   "reference": "ANSWER: 801",
+   "max_tokens": 1024
+  },
+  {
+   "id": "j03-keigo",
+   "category": "japanese",
+   "lang": "ja",
+   "extract": "answer_line",
+   "prompt": "「ありがとう」をより丁寧にした「ありがとう＿＿＿＿」の空欄に入る言葉を、ひらがなで答えてください。",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "ございます"
+    ]
+   },
+   "reference": "ANSWER: ございます",
+   "max_tokens": 1024
+  },
+  {
+   "id": "j04-joshi",
+   "category": "japanese",
+   "lang": "ja",
+   "extract": "answer_line",
+   "prompt": "次の文から助詞だけを出てくる順に抜き出し、読点「、」で区切って答えてください：「猫が庭で魚を食べた」",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "が、で、を",
+     "が,で,を"
+    ]
+   },
+   "reference": "ANSWER: が、で、を",
+   "max_tokens": 1024
+  },
+  {
+   "id": "j05-kotowaza",
+   "category": "japanese",
+   "lang": "ja",
+   "extract": "answer_line",
+   "prompt": "「早起きは三文の＿」の空欄に入る漢字一字を答えてください。",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "徳"
+    ]
+   },
+   "reference": "ANSWER: 徳",
+   "max_tokens": 1024
+  },
+  {
+   "id": "j06-wareki",
+   "category": "japanese",
+   "lang": "ja",
+   "extract": "answer_line",
+   "prompt": "令和8年は西暦何年ですか。算用数字で答えてください。",
+   "grader": {
+    "type": "number",
+    "answer": 2026
+   },
+   "reference": "ANSWER: 2026",
+   "max_tokens": 1024
+  },
+  {
+   "id": "j07-gojuon",
+   "category": "japanese",
+   "lang": "ja",
+   "extract": "answer_line",
+   "prompt": "次の言葉を五十音順に並べ替え、読点「、」で区切って答えてください：さくら、あめ、たいよう、かぜ、まど",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "あめ、かぜ、さくら、たいよう、まど",
+     "あめ,かぜ,さくら,たいよう,まど"
+    ]
+   },
+   "reference": "ANSWER: あめ、かぜ、さくら、たいよう、まど",
+   "max_tokens": 1024
+  },
+  {
+   "id": "j08-moji-count",
+   "category": "japanese",
+   "lang": "ja",
+   "extract": "answer_line",
+   "prompt": "「とうきょうとっきょきょかきょく」は何文字ですか。小さい「ょ」「っ」も1文字と数えて、算用数字で答えてください。",
+   "grader": {
+    "type": "number",
+    "answer": 15
+   },
+   "reference": "ANSWER: 15",
+   "max_tokens": 1024
+  },
+  {
+   "id": "j09-kanji-parts",
+   "category": "japanese",
+   "lang": "ja",
+   "extract": "answer_line",
+   "prompt": "漢字「森」には、漢字「木」がいくつ含まれていますか。算用数字で答えてください。",
+   "grader": {
+    "type": "number",
+    "answer": 3
+   },
+   "reference": "ANSWER: 3",
+   "max_tokens": 1024
+  },
+  {
+   "id": "j10-yojijukugo",
+   "category": "japanese",
+   "lang": "ja",
+   "extract": "answer_line",
+   "prompt": "「一石二鳥」と最も意味が近いものを次から選び、記号で答えてください。ア：二兎を追う者は一兎をも得ず　イ：一挙両得　ウ：石の上にも三年",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "イ"
+    ]
+   },
+   "reference": "ANSWER: イ",
+   "max_tokens": 1024
+  },
+  {
+   "id": "j11-sonkeigo",
+   "category": "japanese",
+   "lang": "ja",
+   "extract": "answer_line",
+   "prompt": "「言う」の尊敬語を、ひらがなで答えてください。",
+   "grader": {
+    "type": "exact",
+    "answers": [
+     "おっしゃる",
+     "仰る"
+    ]
+   },
+   "reference": "ANSWER: おっしゃる",
+   "max_tokens": 1024
+  }
+ ]
+}

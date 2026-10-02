@@ -1,0 +1,30 @@
+model-drift-watch for Hermes Agent
+Copyright (c) 2026 TakeshiTGAL. Licensed under the MIT License (see LICENSE).
+
+This repository contains no code, data or text copied from other projects. All code and all
+questions in data/default_suite.json were written for this project.
+
+Ideas it builds on, with thanks:
+
+- livenerf (https://github.com/ninjahawk/livenerf). No code from livenerf is included in this
+  repository, because the livenerf repository has no LICENSE file (checked on GitHub on
+  2026-10-02; its README states MIT). What was taken are ideas described in its public README:
+  compare a model with its own launch-time baseline item by item; grade exactly, never with a
+  model; treat output-token count as an early signal; publish the decision rule in advance.
+- "Adding Error Bars to Evals" (arXiv:2411.00640, 2024): paired, per-question
+  comparison so question difficulty drops out.
+- EleutherAI lm-evaluation-harness (MIT) and promptfoo (MIT): deterministic answer extraction and
+  assertion-style graders (exact, regex, JSON). No code reused.
+- openai/human-eval (MIT): grading code answers by running hidden tests in a separate process
+  with a timeout. Our checker is a separate implementation.
+- UK AISI Inspect (MIT): logging every sample with usage, as the unit of later analysis.
+- NerfWatch (MIT, https://github.com/tendaigomo/NerfWatch): tracking categories separately so a
+  collapse in one area cannot hide behind the average.
+- is-gpt-nerfed (MIT, https://github.com/kiyoakii/is-gpt-nerfed): checking which model actually
+  answered, and treating "no usable answer" as invalid rather than as a verdict.
+- llm-health-monitor (MIT, https://github.com/hajunho/llm-health-monitor): separating provider
+  outages from quality changes.
+
+Statistical methods (hypergeometric conditional test, Holm-Bonferroni, exact sign test,
+percentile bootstrap) are textbook methods implemented from scratch with the Python standard
+library.
