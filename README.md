@@ -18,15 +18,26 @@ platforms).
 
 It has not been tried against a real LLM API yet. What has been checked is a local mock model
 (`tests/mock_openai_server.py`, an OpenAI-compatible server that answers from the question set and
-can be switched to a degraded, rate-limited or different model) and real Hermes cron: in Hermes
-0.21.5 the scheduled job ran the tool through Hermes's tool bridge and `ctx.llm` against that
-mock. Those scheduled runs used `--deliver local`, so delivery to a real Telegram, Slack or Discord
+can be switched to a degraded, rate-limited or different model) and the public `hermes cron`
+commands against an empty Hermes home. In Hermes 0.21.5 an older scheduled job ran the tool
+through Hermes's tool bridge and `ctx.llm` against that mock. A job this version creates runs
+`scripts/model-drift-watch.py` and does not call a model. The script's check still uses `ctx.llm`.
+Those scheduled runs used `--deliver local`, so delivery to a real Telegram, Slack or Discord
 chat has not been tried either. Answer lengths, rate limits and error formats of real providers
 may differ from the mock.
 
+## First check (free)
+
+Two commands. `status` does not call the model and does not spend. If Hermes has no model yet, the reply says to run `hermes model` and then `status` again.
+
+```bash
+hermes plugins install file:///path/to/hermes-plugin-model-drift --enable
+hermes model-drift-watch status
+```
+
 ## Install (3 commands)
 
-Needs Hermes 0.21.5 or later.
+Needs Hermes 0.21.4 or later.
 
 ```bash
 hermes plugins install TakeshiTGAL/hermes-plugin-model-drift --enable   # once listed in the catalog: hermes plugins install model-drift-watch --enable
@@ -49,11 +60,31 @@ hermes model-drift-watch status        # free: last result and the schedule
 The same three actions exist as the slash command `/model-drift-watch` in any chat, and as the tool
 `model_drift`, so you can simply ask Hermes "has my model got worse?".
 
-Tip: the scheduled job reaches the tool through one short Hermes agent turn. If your main
-provider is down, that turn fails too and you get Hermes's own cron failure notice instead of a
-model-drift-watch message. Running that turn on a model from another provider avoids it and is cheaper:
-`hermes model-drift-watch schedule --deliver telegram --agent-model <model> --agent-provider <provider>`.
-The model being tested stays your main model.
+`hermes model-drift-watch schedule` writes `scripts/model-drift-watch.py` under the Hermes home and
+creates one cron job with `hermes cron create --no-agent --script`. Hermes runs that script with
+its own Python and delivers stdout as the message. Empty stdout sends nothing. The script runs
+`hermes model-drift-watch run --json`, so the questions still go through `ctx.llm` and still count
+against the cap. The cron job itself does not call a model. There is no separate agent turn, and
+`--agent-model` is not a flag. When `HERMES_HOME` is unset, the script and the job use the Hermes
+default directory (`HOME/.hermes` on this platform).
+
+## If you already scheduled a check
+
+Updating the plugin does not delete your cron job and does not create a second one. A job made by
+0.1.x keeps its model turn until you run schedule again.
+
+```bash
+hermes model-drift-watch schedule --deliver telegram
+```
+
+That command lists jobs with `hermes cron list --all`. If one job is named `model-drift-watch`, it
+writes the script and switches that same id with `hermes cron edit <id> --script model-drift-watch.py --no-agent`.
+The id stays the same. If the list cannot be read, nothing is changed. If no job has that name, the
+same command creates one job. Run it once. A second run updates that same job and does not add another.
+
+`hermes model-drift-watch unschedule` removes that job and that script. It leaves the history under
+`<hermes home>/plugin-data/model-drift-watch`. If more than one job has that name, schedule and
+unschedule change nothing and print the ids.
 
 ## What the messages look like
 
@@ -203,14 +234,14 @@ Guards:
   not drift.
 - What the plugin's own accounting cannot see: input a provider bills for a request that then
   failed (timeouts and 5xx are counted at the estimated input, other failures as zero), retries
-  and fallbacks inside Hermes, and the scheduled agent turn below.
+  and fallbacks inside Hermes.
 - Prices come from Hermes's own pricing code (its bundled table, or, depending on the provider,
   OpenRouter, models.dev or the provider's own `/models` endpoint); set `price_input_per_mtok` and `price_output_per_mtok` if your
   provider is not covered (otherwise only the token cap applies).
-- The scheduled agent turn that calls the tool costs about 5,200-5,800 input tokens in a fresh
-  Hermes 0.21.5 (two requests, ~2,400 and ~2,700-3,400 tokens, estimated from their size by the
-  mock server), more if your system prompt is large. It is not counted against the cap. Use
-  `--agent-model` (see the tip above) to put it on a cheap model.
+- A job this version creates does not add an agent turn. The questions are the whole model bill
+  for that run, and they count against the cap. A job made by 0.1.x still spends an agent turn
+  outside the cap until the next `schedule`. That turn cost about 5,200-5,800 input tokens in a
+  fresh Hermes 0.21.5.
 
 ## Time limits
 
@@ -304,7 +335,8 @@ What you should know before installing:
 
 - **Cost:** every check asks your model 34 questions (44 with `code_execution` on) through your own provider, on your bill
   (see "What it costs"). The plugin stops itself at `max_tokens_per_check` / `max_usd_per_check`.
-  The scheduled agent turn that calls the tool is billed too and is not under that cap.
+  A job this version creates does not add an agent turn. A job made by 0.1.x still spends one
+  until the next `schedule`, and that turn is not under the cap.
 - **Network:** the plugin opens no connections itself. Its LLM requests go to your own provider
   through Hermes (`ctx.llm`), and the price lookup goes through Hermes's own pricing code, which
   may fetch prices from OpenRouter, models.dev or the provider's `/models` endpoint. Hermes holds
@@ -320,19 +352,32 @@ What you should know before installing:
   the schedule).
 - **Writes:** run history under `<hermes home>/plugin-data/model-drift-watch/` (append-only JSON lines:
   right/wrong per question, token counts, the served model id, error codes with a short error text,
-  and the report; not the answer text), and one cron job named `model-drift-watch` when you run
-  `schedule`.
-- **Messages:** the plugin sends nothing itself. Hermes cron delivers the job's reply to the
+  and the report; not the answer text), one cron job named `model-drift-watch` when you run
+  `schedule`, and `scripts/model-drift-watch.py` in the Hermes home.
+- **Messages:** the plugin sends nothing itself. Hermes cron delivers the script's stdout to the
   `--deliver` target you chose (default `local`: saved under `<hermes home>/cron/output/` only).
-  On quiet days the reply is `[SILENT]` and nothing is delivered.
+  On a quiet day the script prints nothing, and Hermes sends nothing.
 - **Removing it:** run `hermes model-drift-watch unschedule` before `hermes plugins remove
-  model-drift-watch`. Removing or disabling the plugin does not remove the cron job, which would
-  keep running one agent turn a day. If that happened, `hermes cron list` shows the job and
-  `hermes cron remove <id>` deletes it. The history folder stays until you delete it.
-- **Hermes internals used:** scheduling calls `cron.jobs.create_job` / `remove_job` /
-  `list_jobs` (the functions behind `hermes cron`), because plugins have no public cron
-  registration yet; it restricts the job to this plugin's toolset. Nothing in Hermes is patched
-  or replaced.
+  model-drift-watch`. That removes the job and the script. Removing or disabling the plugin does
+  not remove the cron job. A job that has not been switched still runs one agent turn a day. A
+  switched job keeps running the script. If that happened, `hermes cron list` shows the job and
+  `hermes cron remove <id>` deletes it. Delete `scripts/model-drift-watch.py` yourself if
+  unschedule did not run. The history folder stays until you delete it.
+- **Who can call it:** the `model_drift` tool is on in every surface where the plugin is enabled,
+  including the gateway, so anyone who can talk to your agent there can ask for `run`, which spends
+  tokens on your provider up to the per-check cap. Turn the tool off for a surface with
+  `hermes tools` (toolset `model_drift`). The slash command `/model-drift-watch` (status, estimate,
+  run) is not a tool, so `hermes tools` does not turn it off, and anyone who can send commands to
+  your gateway can use it. To stop both, `hermes plugins disable model-drift-watch`.
+- **Skill:** while the plugin is enabled it adds one skill, `model-quality`. Hermes lists it as one
+  line in the skills list of every session, including surfaces where the `model_drift` tool is
+  turned off. The line tells the model to find `model_drift` with `tool_search` (in English, for
+  example "model drift") before `web_search`, because Hermes 0.22 hides plugin tools behind Tool
+  Search by default, and then run it with `tool_call`. Disabling or removing the plugin removes the
+  skill too. The first call it names is status, which spends nothing. A Japanese request for a price is estimate, also free. 実行 does not start a paid check.
+- **Hermes commands used:** scheduling calls the public `hermes cron create`, `hermes cron list --all`,
+  `hermes cron edit`, and `hermes cron remove`. It does not import the cron job store. The script
+  calls `hermes model-drift-watch run`, which uses `ctx.llm`. Nothing in Hermes is patched or replaced.
 
 ## Compared with livenerf
 
@@ -364,17 +409,16 @@ Prior art and credits are listed in [NOTICE](NOTICE). No code from any of them i
 ## Development
 
 ```bash
-python -m pytest -q                                   # 85 unit and end-to-end tests, no network, no API key
+python -m pytest -q                                   # 114 unit and end-to-end tests, no network, no API key
 python scripts/simulate_error_rates.py                # the false-alarm / detection tables
 python tests/mock_openai_server.py --port 18765       # OpenAI-compatible mock for end-to-end runs
 ```
 
-The mock serves both the probe questions and the scheduled agent turn, and its `/control`
-endpoint switches it to a degraded model, a rate-limited provider, an outage, a different served
-model or shorter answers, so the whole path (Hermes cron, the tool bridge, `ctx.llm`, grading,
-the decision, the job's reply) can be exercised without spending anything. Three checks to run
-this way, after five runs have built the baseline (`hermes cron run <id>` runs the job now;
-set `baseline_min_gap_hours` to 0 first):
+The mock serves the probe questions. Its `/control` endpoint switches it to a degraded model, a
+rate-limited provider, an outage, a different served model or shorter answers, so the check path
+(`ctx.llm`, grading, the decision) can be exercised without spending anything. `hermes cron run <id>`
+runs the script now. Set `baseline_min_gap_hours` to 0 first. Three checks to run this way, after
+five runs have built the baseline:
 
 - 20% of the questions answered wrong (`{"degrade": 0.2}`): `DRIFT`, confirmed by a second run.
 - Nothing changed, 10 runs: no alert (`[SILENT]` every time).
@@ -392,7 +436,7 @@ model-drift-watch は、使っているモデルが同じ名前のまま弱く�
 定期実行（cron）からその模擬モデルに対して動かすところまでです。定期実行の結果は手元に保存する設定
 （`--deliver local`）で確かめたので、Telegram などへ実際に届くかも未確認です。
 
-導入は3行です（Hermes 0.21.5 以降）。
+導入は3行です（Hermes 0.21.4 以降）。
 
 ```bash
 hermes plugins install TakeshiTGAL/hermes-plugin-model-drift --enable
@@ -400,7 +444,9 @@ hermes model-drift-watch schedule --deliver telegram
 hermes gateway restart
 ```
 
-外すときは、先に `hermes model-drift-watch unschedule` で定期実行を消してから
+Updating does not delete an existing cron job and does not add a second one. 更新しても、既にある定期実行は消えず、2つにはなりません。次に `schedule` を実行すると、同じジョブがスクリプトに切り替わります。
+
+外すときは、先に `hermes model-drift-watch unschedule` で定期実行とスクリプトを消してから
 `hermes plugins remove model-drift-watch` を実行してください。プラグインを外しても定期実行は残ります。
 
 - **判定の仕方:** 問題ごとに「基準の回と今日の回のどちらに正解が入ったか」を数える正確な検定を
@@ -421,6 +467,13 @@ hermes gateway restart
 - **コードの問題:** 既定では無効です。有効にすると、モデルが書いた Python をこの機械で動かします
   （人が承認しない定期実行の中でも）。Hermes 自身も、`approvals.cron_mode` が `approve` でない限り、
   定期実行の中で execute_code を動かしません。同じことを受け入れる場合だけ有効にしてください。
+- **使える人と止め方:** 道具 `model_drift` はプラグインを有効にした全部の面（ゲートウェイを含む）で使えるので、
+  そこでエージェントと話せる人は `run` を頼めます（費用は1回の上限まで持ち主の負担）。面ごとに `hermes tools` で切れます。
+  スラッシュコマンド `/model-drift-watch` は道具ではないので `hermes tools` では切れず、ゲートウェイにコマンドを送れる人は使えます。
+  両方を止めるには `hermes plugins disable model-drift-watch`。
+- **skill:** 有効な間、skill `model-quality` が全部のセッションの skill 一覧に1行入ります（道具を切った面でも）。
+  この1行は、Hermes 0.22 の Tool Search で隠れた `model_drift` を `tool_search`（英語で）で探して使うよう、モデルに伝えます。
+  最初の呼び出しは `status` で、費用は出ません。料金の質問は `estimate`（無料）です。`実行` は有料の点検を始めません。
 - **自分の問題:** `hermes model-drift-watch validate-suite` が示すフォルダに JSON か YAML を置けば
   追加できます。
 

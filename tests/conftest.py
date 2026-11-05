@@ -31,6 +31,18 @@ def sub(name):
     return importlib.import_module(f"{PACKAGE}.{name}")
 
 
+@pytest.fixture(autouse=True)
+def hermes_home_is_temp(tmp_path, monkeypatch):
+    """Point HOME and HERMES_HOME at this test. A schedule call must not touch the real home."""
+    home = tmp_path / "user-home"
+    hermes_home = home / "hermes-data"
+    home.mkdir()
+    hermes_home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.delenv("HERMES_DATA_DIR_SUFFIX", raising=False)
+
+
 @pytest.fixture
 def plugin():
     return PLUGIN

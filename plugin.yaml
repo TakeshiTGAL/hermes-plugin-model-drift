@@ -1,13 +1,17 @@
 name: model-drift-watch
-version: 0.1.0
+version: 0.2.1
 manifest_version: 2
-requires_hermes: ">=0.21.5"
+requires_hermes: ">=0.21.4"
 description: >-
   Find out when the model you use gets quietly worse. Runs a fixed, exactly graded
   question set (reasoning, instruction following, Japanese, and code if you turn it
   on) on a schedule, compares each run with the same model's own baseline using an
   exact statistical test, and messages you only when a drop passes that test. Shows
   the token and dollar cost before it spends anything and stops at your cap.
+  The first call is status, which spends nothing.
+  schedule writes one script and one cron job that does not call a model.
+  The check still calls your model. Running schedule again switches an existing
+  job and does not add a second one.
 author: TakeshiTGAL
 license: MIT
 homepage: https://github.com/TakeshiTGAL/hermes-plugin-model-drift

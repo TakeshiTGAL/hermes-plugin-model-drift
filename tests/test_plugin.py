@@ -43,7 +43,7 @@ def test_registered_capabilities_match_manifest(plugin):
     plugin.register(ctx)
     manifest = _yaml(ROOT / "plugin.yaml")
     assert manifest["name"] == "model-drift-watch" and manifest["manifest_version"] == 2
-    assert manifest["requires_hermes"] == ">=0.21.5"
+    assert manifest["requires_hermes"] == ">=0.21.4"
     assert sorted(ctx.tools) == sorted(manifest["provides_tools"]) == ["model_drift"]
     assert ctx.hooks == [] and "provides_hooks" not in manifest and "requires_env" not in manifest
     assert list(ctx.commands) == [manifest["name"]] and list(ctx.cli) == [manifest["name"]]
@@ -72,7 +72,7 @@ def test_tool_handler_answers_json_without_spending(plugin, tmp_path, monkeypatc
     _, schema, handler = ctx.tools["model_drift"]
     assert schema["parameters"]["properties"]["action"]["enum"] == ["status", "estimate", "run"]
     out = json.loads(handler({"action": "nonsense"}))
-    assert out["status"] == "error" and "Use status, estimate or run" in out["message"]
+    assert out["status"] == "error" and "action must be status, estimate, or run" in out["message"]
 
 
 def test_service_end_to_end_with_mock(mods, tmp_path, suite_items):
@@ -87,7 +87,11 @@ def test_service_end_to_end_with_mock(mods, tmp_path, suite_items):
     first = mods.service.run(env)
     assert first["status"] == "collecting" and first["message"] == "[SILENT]"
     assert "Baseline for custom:mock-model: 1 of 5 runs collected" in first["report"]
-    st = mods.service.status(env)
+    class EmptyCron:
+        def load_jobs(self):
+            return []
+
+    st = mods.service.status(env, cron=EmptyCron())
     assert "collecting" in st["message"] and "Not scheduled" in st["message"]
 
 

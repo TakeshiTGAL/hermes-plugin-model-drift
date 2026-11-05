@@ -14,7 +14,6 @@ HINTS = {
     "auth": "The provider refused the credentials. Fix the key or login with `hermes model`, then run `hermes model-drift-watch run`.",
     "not_permitted": "Hermes did not let this plugin choose that model. Add the grant printed by `hermes model-drift-watch targets` to config.yaml.",
     "no_provider": "No model is configured. Pick one with `hermes model`, then run `hermes model-drift-watch run`.",
-    "bad_request": "The provider rejected the request. If the error mentions temperature, run: {set}send_temperature false",
     "empty_response": "The model returned empty answers, usually because a reasoning model used up its answer limit while thinking. Raise the limit: {set}max_tokens_scale 4 (starts a new baseline for the questions).",
     "rerouted": "Some answers came from another model, usually Hermes falling back after a provider error. Check `hermes logs`.",
     "budget": "The check stopped at your cap. Raise it ({set}max_tokens_per_check / max_usd_per_check) or ask fewer questions (categories setting).",
@@ -86,7 +85,7 @@ def estimate_text(est, s, target_id: str, n_items: int) -> str:
                      "reports a failed measurement, never drift.")
     else:
         lines.append(f"Cap {cap}: fits even the worst case.")
-    lines.append("A scheduled check also spends one short Hermes agent turn to call the tool (see README).")
+    lines.append("A scheduled check runs the same questions and does not add an agent turn (see README).")
     return "\n".join(lines)
 
 
@@ -116,10 +115,58 @@ def _errors(rec: Dict[str, Any]) -> str:
     return f"{rec['samples'] - rec['answered']} of {rec['samples']} answers could not be used ({errs})."
 
 
+# Phrases a provider uses when the model id itself is wrong. Matched on the lowercased detail.
+_MODEL_MISSING = (
+    "model does not exist",
+    "model_not_found",
+    "no such model",
+    "unknown model",
+    "invalid model",
+    "model not found",
+)
+
+
+def _is_rejection_detail(detail: str) -> bool:
+    low = detail.lower()
+    return any(mark in low for mark in ("badrequest", "notfound", " 400:", " 404:", " 422:"))
+
+
+def _rejection_text(details: List[str]) -> str:
+    own = [d for d in details if _is_rejection_detail(d)]
+    return "\n".join(own or details).lower()
+
+
+def _model_missing(text: str) -> bool:
+    if any(phrase in text for phrase in _MODEL_MISSING):
+        return True
+    # OpenAI writes "The model `name` does not exist", so the words are not adjacent.
+    return "model" in text and "does not exist" in text
+
+
+def bad_request_hint(details: List[str]) -> str:
+    """Next step for a rejected request. Temperature is mentioned only when the error says it."""
+    text = _rejection_text(details)
+    parts: List[str] = []
+    if _model_missing(text):
+        parts.append("The provider says that model does not exist. "
+                     "Check the name with `hermes model`, then run `hermes model-drift-watch run`.")
+    elif " 404:" in text or "notfound" in text:
+        parts.append("The provider returned 404. Check the model name with `hermes model` and the base URL.")
+    if "temperature" in text:
+        parts.append(f"The error mentions temperature. Run: {SET}send_temperature false")
+    if not parts:
+        parts.append("The provider rejected the request. See `hermes logs` for the reason.")
+    return " ".join(parts)
+
+
 def _hints(rec: Dict[str, Any]) -> List[str]:
+    details = [str(d) for d in (rec.get("error_details") or []) if d]
     out = []
     for code, _ in sorted(rec["errors"].items(), key=lambda kv: -kv[1])[:2]:
-        hint = HINTS.get(code, HINTS["error"]).format(set=SET)
+        if code == "bad_request":
+            hint = bad_request_hint(details)
+        else:
+            hint = HINTS.get(code, HINTS["error"]).format(set=SET)
         if hint not in out:
             out.append(hint)
     return out

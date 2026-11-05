@@ -15,7 +15,8 @@ class Target:
 
     @property
     def id(self) -> str:
-        return f"{self.provider or 'auto'}:{self.model or 'default'}"
+        provider = (self.provider or "auto").strip() or "auto"
+        return f"{provider}:{self.model}"
 
 
 def load_config() -> Dict[str, Any]:
@@ -26,16 +27,51 @@ def load_config() -> Dict[str, Any]:
         return {}
 
 
+# Hermes reads a model id from these keys, in this order (config.py: default, then model, then name).
+_NAME_KEYS = ("default", "model", "name")
+
+
+def _model_name(value: Any) -> str:
+    """The model id written in this field, or "" when nothing is configured.
+
+    A blank string is not a model. Hermes's empty home stores ``model: ""``, and the display id
+    must not invent the word ``default`` for that blank.
+    """
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, dict):
+        for key in _NAME_KEYS:
+            found = _model_name(value.get(key))
+            if found:
+                return found
+    return ""
+
+
+def _provider_name(value: Any) -> str:
+    if not isinstance(value, dict):
+        return ""
+    raw = value.get("provider")
+    if isinstance(raw, str) and raw.strip():
+        return raw.strip()
+    for key in _NAME_KEYS:
+        found = _provider_name(value.get(key))
+        if found:
+            return found
+    return ""
+
+
 def _main(cfg: Dict[str, Any]) -> Optional[Target]:
-    m = cfg.get("model")
-    if isinstance(m, str):
-        return Target(provider=str(cfg.get("provider") or "auto"), model=m, role="main", override=False)
-    if not isinstance(m, dict):
+    if not isinstance(cfg, dict):
         return None
-    model = str(m.get("default") or m.get("model") or "").strip()
-    if not model:
+    block = cfg.get("model")
+    name = _model_name(block)
+    if not name:
         return None
-    return Target(provider=str(m.get("provider") or "auto").strip(), model=model, role="main", override=False)
+    provider = _provider_name(block) if isinstance(block, dict) else ""
+    if not provider:
+        root = cfg.get("provider")
+        provider = root.strip() if isinstance(root, str) else ""
+    return Target(provider=provider or "auto", model=name, role="main", override=False)
 
 
 def parse_target(spec: Any, role: str = "extra") -> Optional[Target]:
